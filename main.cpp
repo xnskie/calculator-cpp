@@ -43,14 +43,37 @@ int oper_result(int& x, int& y, string& oper) {
             }
     return 0;
 }
- 
-int main() {
-    string input;
-    cout << "Enter operation (or ''exit''): ";
-    getline(cin, input);
-    vector<int> integers = extractIntegers(input);
-    vector<string> operations = extractOpers(input);
-    
+
+bool isDividedByNull(vector<int>& integers, vector<string>& operations) {
+    for(int i = 0; i < operations.size(); i++) {
+        if(operations.at(i) == "/" && integers.at(i + 1) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool isThereOrder(const string& input) {
+    if(input.find("*") != string::npos || input.find("/") != string::npos) {
+        return true;
+    }
+    return false;
+}
+
+void order_oper_result(vector<int>& integers, vector<string>& operations, const string& input) {
+    if(isThereOrder(input)) {
+        for(int i = 0; i < operations.size(); i++) {
+            if(operations.at(i) == "*" || operations.at(i) == "/") {
+                int res = oper_result(integers.at(i), integers.at(i + 1), operations.at(i));
+                integers.erase(next(integers.begin(), i), next(integers.begin(), 2 + i));
+                operations.erase(next(operations.begin(), i));
+                integers.insert(next(integers.begin(), i), res);
+            }
+        }
+    }
+}
+
+void simple_opers(vector<int>& integers, vector<string>& operations) {
     int i = 0;
     while(!operations.empty()) {
         int res = oper_result(integers.at(i), integers.at(i + 1), operations.at(i));
@@ -58,8 +81,27 @@ int main() {
         operations.erase(operations.begin());
         integers.insert(integers.begin(), res);
     }
+}
+
+int main() {
+    string input;
+    cout << "Enter operation (or 'exit'): ";
+    getline(cin, input);
+    while(input != "exit") {
+        vector<int> integers = extractIntegers(input);
+        vector<string> operations = extractOpers(input);
+        
+        if(!isDividedByNull(integers, operations)) {
+            order_oper_result(integers, operations, input);
+            simple_opers(integers, operations);
+            cout << "Result: " << integers[0] << endl;
+        } else cout << "Error! Divided by NULL" << endl;
+        
+        
+        cout << "Enter operation (or 'exit'): ";
+        getline(cin, input);
+    }
     
-    cout << "Result: " << integers[0] << endl;
  
     return 0;
 }
